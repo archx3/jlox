@@ -45,7 +45,33 @@ public class Scanner {
       case '+' : addToken(PLUS); break;
       case ';' : addToken(SEMICOLON); break;
       case '*' : addToken(STAR); break;
-      case '/' : addToken(FORWARD_SLASH); break;
+
+      case '!' : {
+        addToken(match('=') ? BANG_EQUAL : BANG);
+        break;
+      }
+      case '=' : {
+        addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+        break;
+      }
+      case '<' : {
+        addToken(match('=') ? LESS_EQUAL : LESS);
+        break;
+      }
+      case '>' : {
+        addToken(match('=') ? GREATER_EQUAL : GREATER);
+        break;
+      }
+      case '/' : {
+        if (match('/')) {
+          while (!isAtEnd() && peek() != '\n') {
+            advance();
+          }
+        } else {
+          addToken(FORWARD_SLASH);
+          break;
+        }
+      }
 
       default: {
         Lox.error(line, "Unexpected character: '" + CHAR + "' found");
@@ -54,10 +80,32 @@ public class Scanner {
     }
   }
 
-  private char advance() {
+  /**
+   * Matches the given expected character with the current character.
+   * Technically, match id doing a lookahead too;
+   * advance() and peek() are the fundamental operators, and match() combines them.
+   *
+   * @param expected the character to be matched with the current character
+   * @return true if the characters match, false otherwise
+   */
+  private boolean match (char expected) {
+    if (isAtEnd()) return false;
+
+    if (source.charAt(current) != expected) return false;
+
+    current++;
+    return true;
+  }
+
+  private char advance () {
     //  current++;
     //  return source.charAt(current - 1);
     return source.charAt(current++); // this should fetch the current and execute the increment afterward
+  }
+
+  private char peek () {
+    if (isAtEnd()) return '\0'; // terminator null character or the null byte
+    return source.charAt(current);
   }
 
   private void addToken (TokenType type, Object literal) {
